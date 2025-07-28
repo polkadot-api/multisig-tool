@@ -79,7 +79,9 @@ const ChainStatus = () => {
       <div className="p-4">
         <div className="text-muted-foreground text-sm font-medium">Chain</div>
         <div className="flex items-center">
-          <div className="capitalize">{chain.value}</div>
+          <div className={chain.type === "sm" ? "capitalize" : ""}>
+            {chain.value}
+          </div>
           <Dot className={client ? "text-green-500" : "text-orange-300"} />
           <div>{client ? "Connected" : "Connecting…"}</div>
         </div>
