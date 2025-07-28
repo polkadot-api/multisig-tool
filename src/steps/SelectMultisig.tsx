@@ -13,7 +13,11 @@ import { Input } from "@/components/ui/input";
 import { getHashParam } from "@/lib/hashParams";
 import { accId } from "@/lib/ss58";
 import type { dot } from "@polkadot-api/descriptors";
-import { novasamaProvider } from "@polkadot-api/sdk-accounts";
+import {
+  fallbackMultisigProviders,
+  novasamaProvider,
+  subscanProvider,
+} from "@polkadot-api/sdk-accounts";
 import {
   Binary,
   Blake2256,
@@ -40,7 +44,12 @@ import {
 import { tx$ } from "./CallData";
 import { client$ } from "./SelectChain";
 
-const getMultisig = novasamaProvider("kusama");
+const getMultisig = fallbackMultisigProviders(
+  novasamaProvider("polkadot"),
+  import.meta.env.VITE_SUBSCAN_API_KEY
+    ? subscanProvider("polkadot", import.meta.env.VITE_SUBSCAN_API_KEY)
+    : async () => null
+);
 
 const initialSignatories = getHashParam("signatories");
 const initialThreshold = getHashParam("threshold");
@@ -230,7 +239,7 @@ const FromSignatories = () => {
         <div className="text-orange-600">
           Multisig threshold can't be higher than the amount of members
         </div>
-      ) : (
+      ) : multisig.addresses.every((addr) => addr != null) ? (
         <div>
           <div className="text-sm font-medium">Resulting multisig address</div>
           <OnChainIdentity
@@ -242,7 +251,7 @@ const FromSignatories = () => {
             )}
           />
         </div>
-      )}
+      ) : null}
     </div>
   );
 };
