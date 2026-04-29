@@ -34,6 +34,7 @@ import { Import, Plus, Trash2 } from "lucide-react";
 import { FC, useState } from "react";
 import {
   combineLatest,
+  distinctUntilChanged,
   EMPTY,
   from,
   map,
@@ -135,7 +136,7 @@ export const multisigCall$ = state(
     client$,
     tx$.pipe(
       switchMap((tx) => tx?.getEncodedData() ?? of(null)),
-      map((v) => (v ? Blake2256(v.asBytes()) : null))
+      map((v) => (v ? Binary.toHex(Blake2256(v)) : null))
     ),
     multisigAccount$,
   ]).pipe(
@@ -144,11 +145,10 @@ export const multisigCall$ = state(
 
       return client
         .getUnsafeApi<typeof dot>()
-        .query.Multisig.Multisigs.watchValue(
-          account.multisigId,
-          Binary.fromBytes(callHash)
-        );
-    })
+        .query.Multisig.Multisigs.watchValue(account.multisigId, callHash);
+    }),
+    map((v) => v?.value),
+    distinctUntilChanged()
   ),
   null
 );

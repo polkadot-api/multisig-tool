@@ -28,7 +28,7 @@ export const Sign = () => {
       </div>
       <div className="rounded-lg shadow bg-background">
         <div className="bg-accent/20 p-4 flex items-cente border-b">
-          <div className="grow-1">
+          <div className="grow">
             <h2 className="font-bold text-2xl leading-none">
               Transaction Details
             </h2>

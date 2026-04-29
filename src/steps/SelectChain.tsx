@@ -5,9 +5,8 @@ import { state, useStateObservable } from "@react-rxjs/core";
 import { createSignal } from "@react-rxjs/utils";
 import { Dot } from "lucide-react";
 import { createClient } from "polkadot-api";
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
 import { getSmProvider } from "polkadot-api/sm-provider";
-import { getWsProvider } from "polkadot-api/ws-provider/web";
+import { getWsProvider } from "polkadot-api/ws";
 import { concat, finalize, from, map, NEVER, startWith, switchMap } from "rxjs";
 
 interface SelectedChain {
@@ -39,9 +38,9 @@ export const selectedChain$ = state<SelectedChain>(
 
 const getProvider = (selectedChain: SelectedChain) => {
   if (selectedChain.type === "ws") {
-    return withPolkadotSdkCompat(getWsProvider(selectedChain.value));
+    return getWsProvider(selectedChain.value);
   }
-  return getSmProvider(
+  return getSmProvider(() =>
     smoldotChains[selectedChain.value]().then(({ chainSpec }) =>
       smoldot.addChain({
         chainSpec,
@@ -56,7 +55,7 @@ export const client$ = state(
       const provider = getProvider(selectedChain);
       const client = createClient(provider);
 
-      const client$ = from(client.getUnsafeApi().runtimeToken).pipe(
+      const client$ = from(client.getUnsafeApi().getStaticApis()).pipe(
         map(() => client),
         startWith(null)
       );

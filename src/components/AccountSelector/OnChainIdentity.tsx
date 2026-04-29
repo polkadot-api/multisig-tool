@@ -8,6 +8,7 @@ import {
   IdentityJudgement,
   polkadot_people,
 } from "@polkadot-api/descriptors";
+import { PolkadotIdenticon } from "@polkadot-api/react-components";
 import { state, useStateObservable, withDefault } from "@react-rxjs/core";
 import { CheckCircle } from "lucide-react";
 import {
@@ -30,23 +31,25 @@ import {
   tap,
 } from "rxjs";
 import { CopyText } from "../CopyText";
-import { PolkadotIdenticon } from "../PolkadotIdenticon";
 import { accountsByExtension$ } from "./accounts.state";
 
 const peopleChainSpec = import("polkadot-api/chains/polkadot_people");
 
-const peopleChain = smoldotChains
-  .polkadot()
-  .then(({ chainSpec }) =>
-    Promise.all([smoldot.addChain({ chainSpec }), peopleChainSpec])
+const client = createClient(
+  getSmProvider(() =>
+    smoldotChains
+      .polkadot()
+      .then(({ chainSpec }) =>
+        Promise.all([smoldot.addChain({ chainSpec }), peopleChainSpec])
+      )
+      .then(([relayChain, { chainSpec }]) =>
+        smoldot.addChain({
+          chainSpec,
+          potentialRelayChains: [relayChain],
+        })
+      )
   )
-  .then(([relayChain, { chainSpec }]) =>
-    smoldot.addChain({
-      chainSpec,
-      potentialRelayChains: [relayChain],
-    })
-  );
-const client = createClient(getSmProvider(peopleChain));
+);
 const typedApi = client.getTypedApi(polkadot_people);
 
 const CACHE_KEY = "identity-cache";
@@ -70,7 +73,7 @@ const onChainIdentity$ = (address: SS58String) =>
       const displayName = res && readIdentityData(res.info.display);
       return displayName
         ? {
-            displayName: displayName.asText(),
+            displayName: Binary.toText(displayName),
             judgments: res.judgements.map(([registrar, judgement]) => ({
               registrar,
               judgement: judgement.type,
@@ -140,7 +143,7 @@ export const OnChainIdentity: FC<{
   const name = identity?.displayName ?? inputName;
 
   const identicon = (
-    <PolkadotIdenticon className="flex-shrink-0" publicKey={pk} size={28} />
+    <PolkadotIdenticon className="shrink-0" publicKey={pk} size={28} />
   );
   return (
     <div className={cn("flex items-center gap-1 overflow-hidden", className)}>
@@ -176,11 +179,10 @@ export const OnChainIdentity: FC<{
   );
 };
 
-const readIdentityData = (identityData: IdentityData): Binary | null => {
+const readIdentityData = (identityData: IdentityData): Uint8Array | null => {
   if (identityData.type === "None" || identityData.type === "Raw0") return null;
-  if (identityData.type === "Raw1")
-    return Binary.fromBytes(new Uint8Array(identityData.value));
-  return identityData.value;
+  if (identityData.type === "Raw1") return new Uint8Array([identityData.value]);
+  return Binary.fromHex(identityData.value);
 };
 const getPublicKey = (address: string) => {
   const info = getSs58AddressInfo(address);

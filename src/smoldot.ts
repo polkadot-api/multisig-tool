@@ -13,7 +13,7 @@ export const smoldotChains: Record<
   () => Promise<{ chainSpec: string }>
 > = {
   polkadot: async () => import("polkadot-api/chains/polkadot"),
-  kusama: async () => import("polkadot-api/chains/ksmcc3"),
-  westend: async () => import("polkadot-api/chains/westend2"),
+  kusama: async () => import("polkadot-api/chains/kusama"),
+  westend: async () => import("polkadot-api/chains/westend"),
   paseo: async () => import("polkadot-api/chains/paseo"),
 };

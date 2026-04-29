@@ -6,19 +6,18 @@ export const stringify = (value: unknown) =>
     (_, v) =>
       typeof v === "bigint"
         ? `${v}n`
-        : v instanceof Binary
+        : v instanceof Uint8Array
         ? bytesToString(v)
         : v,
     2
   );
 
 const textDecoder = new TextDecoder("utf-8", { fatal: true });
-const bytesToString = (value: Binary) => {
+const bytesToString = (value: Uint8Array) => {
   try {
-    const bytes = value.asBytes();
-    if (bytes.slice(0, 5).every((b) => b < 32)) throw null;
-    return textDecoder.decode(bytes);
+    if (value.slice(0, 5).every((b) => b < 32)) throw null;
+    return textDecoder.decode(value);
   } catch (_) {
-    return value.asHex();
+    return Binary.toHex(value);
   }
 };
