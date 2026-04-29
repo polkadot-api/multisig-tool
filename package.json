@@ -33,6 +33,7 @@
     "cmdk": "^1.1.1",
     "lucide-react": "^1.14.0",
     "polkadot-api": "^2.1.1",
+    "radix-ui": "^1.4.3",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "rxjs": "^7.8.2",
@@ -54,5 +55,8 @@
     "typescript-eslint": "^8.59.1",
     "vite": "^8.0.10"
   },
-  "packageManager": "pnpm@8.15.4+sha1.c85a4305534f76d461407b59277b954bac97b5c4"
+  "packageManager": "pnpm@8.15.4+sha1.c85a4305534f76d461407b59277b954bac97b5c4",
+  "resolutions": {
+    "smoldot": "3.1.0"
+  }
 }

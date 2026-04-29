@@ -1,6 +1,15 @@
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getHashParam } from "@/lib/hashParams";
-import { smoldot, smoldotChains } from "@/smoldot";
+import { smoldotChains } from "@/smoldot";
 import { state, useStateObservable } from "@react-rxjs/core";
 import { createSignal } from "@react-rxjs/utils";
 import { Dot } from "lucide-react";
@@ -21,7 +30,7 @@ export const initialHasChain = !!initialChainParam;
 
 let initialChain: SelectedChain = {
   type: "sm",
-  value: "polkadot",
+  value: "polkadot_asset_hub",
 };
 if (initialChainParam) {
   const [type, ...value] = initialChainParam.split("-");
@@ -41,11 +50,11 @@ const getProvider = (selectedChain: SelectedChain) => {
     return getWsProvider(selectedChain.value);
   }
   return getSmProvider(() =>
-    smoldotChains[selectedChain.value]().then(({ chainSpec }) =>
-      smoldot.addChain({
-        chainSpec,
-      })
-    )
+    smoldotChains[selectedChain.value].createChain().catch((e) => {
+      console.error(e);
+      // TODO Currently PAPI will freeze up if an error happens here. Avoiding the freeze until 2.1.2 is released
+      return new Promise(() => {});
+    })
   );
 };
 
@@ -76,26 +85,42 @@ export const SelectChain = () => {
   const client = useStateObservable(client$);
 
   return (
-    <div className="p-2">
-      <ul className="flex gap-4 flex-wrap">
-        {Object.keys(smoldotChains).map((chain) => (
-          <li key={chain}>
-            <label className="flex items-center gap-1">
-              <input
-                type="radio"
-                checked={selectedChain.value === chain}
-                onChange={() =>
-                  setSelectedChain({
-                    type: "sm",
-                    value: chain,
-                  })
-                }
-              />
-              <div className="py-1 capitalize">{chain}</div>
-            </label>
-          </li>
-        ))}
-      </ul>
+    <div className="p-2 space-y-2">
+      <label className="flex items-center gap-2">
+        <input
+          type="radio"
+          checked={selectedChain.type === "sm"}
+          onChange={() =>
+            setSelectedChain({
+              type: "sm",
+              value: "",
+            })
+          }
+        />
+        <Select
+          value={selectedChain.type === "sm" ? selectedChain.value : ""}
+          onValueChange={(v) =>
+            setSelectedChain({
+              type: "sm",
+              value: v,
+            })
+          }
+        >
+          <SelectTrigger className="w-full max-w-48">
+            <SelectValue placeholder="Smoldot chain" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Chains</SelectLabel>
+              {Object.entries(smoldotChains).map(([id, { name }]) => (
+                <SelectItem key={id} value={id}>
+                  {name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </label>
       <label className="flex items-center gap-2">
         <input
           type="radio"

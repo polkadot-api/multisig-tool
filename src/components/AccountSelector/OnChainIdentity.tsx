@@ -37,17 +37,18 @@ const peopleChainSpec = import("polkadot-api/chains/polkadot_people");
 
 const client = createClient(
   getSmProvider(() =>
-    smoldotChains
-      .polkadot()
-      .then(({ chainSpec }) =>
-        Promise.all([smoldot.addChain({ chainSpec }), peopleChainSpec])
-      )
+    Promise.all([smoldotChains.polkadot.createChain(), peopleChainSpec])
       .then(([relayChain, { chainSpec }]) =>
         smoldot.addChain({
           chainSpec,
           potentialRelayChains: [relayChain],
         })
       )
+      .catch((e) => {
+        console.error(e);
+        // TODO Currently PAPI will freeze up if an error happens here. Avoiding the freeze until 2.1.2 is released
+        return new Promise(() => {});
+      })
   )
 );
 const typedApi = client.getTypedApi(polkadot_people);
