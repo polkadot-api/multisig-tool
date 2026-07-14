@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { dot } from "@polkadot-api/descriptors";
-import { getMultisigSigner } from "@polkadot-api/meta-signers";
+import { getMultisigTxCreator } from "@polkadot-api/meta-signers";
 import { state, useStateObservable } from "@react-rxjs/core";
 import {
   catchError,
@@ -28,13 +28,12 @@ const multisigSigner$ = state(
 
       const unsafeApi = client.getUnsafeApi<typeof dot>();
       try {
-        return getMultisigSigner(
+        return getMultisigTxCreator(
           {
             threshold: multisigAccount.threshold,
             signatories: multisigAccount.addresses,
           },
           unsafeApi.query.Multisig.Multisigs.getValue,
-          unsafeApi.apis.TransactionPaymentApi.query_info,
           selectedSigner
         );
       } catch (ex) {
@@ -77,7 +76,7 @@ const txStatus$ = state(
     withLatestFrom(multisigSigner$, tx$),
     exhaustMap(([, signer, tx]) => {
       if (!signer || !tx) return of(null);
-      return tx.signSubmitAndWatch(signer).pipe(
+      return tx.createSubmitAndWatch(signer).pipe(
         catchError((err) => {
           console.error(err);
           if (err instanceof InvalidTxError) {

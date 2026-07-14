@@ -7,14 +7,14 @@ import {
 } from "@/components/AccountSelector/accounts.state";
 import { genericSS58 } from "@/lib/ss58";
 import { dot } from "@polkadot-api/descriptors";
-import { getProxySigner } from "@polkadot-api/meta-signers";
+import { getProxyTxCreator } from "@polkadot-api/meta-signers";
 import {
   createLinkedAccountsSdk,
   NestedLinkedAccountsResult,
 } from "@polkadot-api/sdk-accounts";
 import { state, useStateObservable, withDefault } from "@react-rxjs/core";
 import { createSignal } from "@react-rxjs/utils";
-import { PolkadotSigner } from "polkadot-api";
+import { TxCreator } from "polkadot-api";
 import {
   catchError,
   combineLatest,
@@ -91,12 +91,15 @@ const linkedAccounts$ = combineLatest([
   shareReplay(1)
 );
 
-type NestedSigner = (signer: PolkadotSigner) => PolkadotSigner;
+type IdentifiedCreeator = TxCreator & {
+  publicKey: Uint8Array;
+};
+type NestedSigner = (signer: IdentifiedCreeator) => IdentifiedCreeator;
 type AccountSigners = Array<{
   address: string;
   signerFn: NestedSigner;
 }>;
-const identity = (signer: PolkadotSigner) => signer;
+const identity = (signer: IdentifiedCreeator) => signer;
 
 const accountSigners$ = state(
   linkedAccounts$.pipe(
@@ -123,8 +126,8 @@ const accountSigners$ = state(
               baseSigner,
               ...innerSigners.map(({ address, signerFn }) => ({
                 address,
-                signerFn: (signer: PolkadotSigner) =>
-                  getProxySigner(
+                signerFn: (signer: IdentifiedCreeator) =>
+                  getProxyTxCreator(
                     {
                       real: address,
                     },
@@ -156,7 +159,7 @@ export const selectedSigner$ = state(
       if (!signers || !selectedAccount) return null;
 
       const nestedSigner = signers[genericSS58(selectedAccount.address)];
-      return nestedSigner ? nestedSigner(selectedAccount.polkadotSigner) : null;
+      return nestedSigner ? nestedSigner(selectedAccount.txCreator) : null;
     })
   ),
   null
