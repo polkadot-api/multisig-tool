@@ -134,7 +134,7 @@ const TxStatus: FC<{
     switch (status.type) {
       case "error":
         return <div className="text-sm">Submission failed! {status.value}</div>;
-      case "signed":
+      case "created":
         return (
           <div className="text-sm text-muted-foreground">
             Transaction signed, validating…
@@ -147,14 +147,14 @@ const TxStatus: FC<{
           </div>
         );
       case "broadcasted":
+      case "notInBestBlock":
         return (
           <div className="text-sm text-muted-foreground">
             The transaction has been sent, waiting to get it included in a
             block…
           </div>
         );
-      case "txBestBlocksState":
-        if (!status.found) return null;
+      case "inBestBlock":
         return status.ok ? (
           <div>
             The transaction has been included in a block, waiting for

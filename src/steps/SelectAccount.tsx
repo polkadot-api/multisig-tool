@@ -14,7 +14,7 @@ import {
 } from "@polkadot-api/sdk-accounts";
 import { state, useStateObservable, withDefault } from "@react-rxjs/core";
 import { createSignal } from "@react-rxjs/utils";
-import { TxCreator } from "polkadot-api";
+import { SignerTxCreator } from "polkadot-api/tx-creator";
 import {
   catchError,
   combineLatest,
@@ -91,7 +91,7 @@ const linkedAccounts$ = combineLatest([
   shareReplay(1)
 );
 
-type IdentifiedCreeator = TxCreator & {
+type IdentifiedCreeator = SignerTxCreator & {
   publicKey: Uint8Array;
 };
 type NestedSigner = (signer: IdentifiedCreeator) => IdentifiedCreeator;
